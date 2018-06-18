@@ -42,7 +42,7 @@ public class TrainFaces extends AppCompatActivity {
     private int absoluteFaceSize = 0;
 
 
-    Rect rectCrop = null;
+
 
 
     @Override
@@ -94,14 +94,21 @@ public class TrainFaces extends AppCompatActivity {
         }
     }
 
+
+
+    /**
+     * Introducing JavaCV frame converters.
+     * http://bytedeco.org/news/2015/04/04/javacv-frame-converters/
+     * @param bitmap
+     * @param facesValue
+     */
     void detectAndDisplay(Bitmap bitmap, TextView facesValue) {
 
-
+        // Initializing.
         opencv_core.Mat greyMat = new opencv_core.Mat();
-
+        // JavaCV frame converters.
         AndroidFrameConverter converterToBitmap = new AndroidFrameConverter();
         OpenCVFrameConverter.ToMat converterToMat = new OpenCVFrameConverter.ToMat();
-
 
         // -------------------------------------------------------------------
         //                  CONVERT BACK TO MAT FOR PROCESSING
@@ -130,33 +137,51 @@ public class TrainFaces extends AppCompatActivity {
         facesValue.setText(Integer.toString(numFaces));
 
         // Display the detected face.
-        int x = faces.get(0).x();
-        int y = faces.get(0).y();
-        int w = faces.get(0).width();
-        int h = faces.get(0).height();
+//        int x = faces.get(0).x();
+//        int y = faces.get(0).y();
+//        int w = faces.get(0).width();
+//        int h = faces.get(0).height();
+//
+//        rectangle(mat, new Point(x, y), new Point(x + w, y + h), opencv_core.Scalar.GREEN, 2, LINE_8, 0);
 
-        rectangle(mat, new Point(x, y), new Point(x + w, y + h), opencv_core.Scalar.GREEN, 2, LINE_8, 0);
+        if ( numFaces > 0 ) {
+            // Multiple face detection.
+            for (int i = 0; i < numFaces; i++) {
+
+                int x = faces.get(i).x();
+                int y = faces.get(i).y();
+                int w = faces.get(i).width();
+                int h = faces.get(i).height();
+
+                rectangle(mat, new Point(x, y), new Point(x + w, y + h), opencv_core.Scalar.GREEN, 2, LINE_8, 0);
+
+                // -------------------------------------------------------------------
+                //              CONVERT BACK TO BITMAP FOR DISPLAYING
+                // -------------------------------------------------------------------
+                // Convert processedMat back to a Frame
+                frame = converterToMat.convert(mat);
+
+                // Copy the data to a Bitmap for display or something
+                Bitmap bm = converterToBitmap.convert(frame);
+
+                // Display the picked image.
+                imageView.setImageBitmap(bm);
+            }
+        } else {
+            imageView.setImageBitmap(bitmap);
+        }
+
+
 
 
         // Crop the detected face.
-        // rectCrop = new Rect(x, y, w, h);
+        // Rect rectCrop = new Rect(x, y, w, h);
 
         // Convert the original image to dropped image.
         // Mat croppedImage = new Mat(mat, rectCrop);
 
 
 
-        // -------------------------------------------------------------------
-        //              CONVERT BACK TO BITMAP FOR DISPLAYING
-        // -------------------------------------------------------------------
-        // Convert processedMat back to a Frame
-        frame = converterToMat.convert(mat);
-
-        // Copy the data to a Bitmap for display or something
-        Bitmap bm = converterToBitmap.convert(frame);
-
-        // Display the picked image.
-        imageView.setImageBitmap(bm);
 
     }
 }
