@@ -102,6 +102,10 @@ public class TrainFaces extends AppCompatActivity {
         AndroidFrameConverter converterToBitmap = new AndroidFrameConverter();
         OpenCVFrameConverter.ToMat converterToMat = new OpenCVFrameConverter.ToMat();
 
+
+        // -------------------------------------------------------------------
+        //                  CONVERT BACK TO MAT FOR PROCESSING
+        // -------------------------------------------------------------------
         // Convert to Bitmap.
         Frame frame = converterToBitmap.convert(bitmap);
         // Convert to Mat.
@@ -131,14 +135,22 @@ public class TrainFaces extends AppCompatActivity {
         int w = faces.get(0).width();
         int h = faces.get(0).height();
 
+        rectangle(mat, new Point(x, y), new Point(x + w, y + h), opencv_core.Scalar.GREEN, 2, LINE_8, 0);
+
+
         // Crop the detected face.
-        rectCrop = new Rect(x, y, w, h);
+        // rectCrop = new Rect(x, y, w, h);
 
         // Convert the original image to dropped image.
-        Mat croppedImage = new Mat(mat, rectCrop);
+        // Mat croppedImage = new Mat(mat, rectCrop);
 
+
+
+        // -------------------------------------------------------------------
+        //              CONVERT BACK TO BITMAP FOR DISPLAYING
+        // -------------------------------------------------------------------
         // Convert processedMat back to a Frame
-        frame = converterToMat.convert(croppedImage);
+        frame = converterToMat.convert(mat);
 
         // Copy the data to a Bitmap for display or something
         Bitmap bm = converterToBitmap.convert(frame);
