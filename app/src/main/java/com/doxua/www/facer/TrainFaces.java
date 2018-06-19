@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import org.bytedeco.javacpp.opencv_core.Point;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -17,13 +18,17 @@ import org.bytedeco.javacpp.opencv_objdetect;
 import org.bytedeco.javacv.AndroidFrameConverter;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.OpenCVFrameConverter;
+
+import static org.bytedeco.javacpp.opencv_imgproc.resize;
 import static org.bytedeco.javacpp.opencv_imgproc.rectangle;
-import org.bytedeco.javacpp.opencv_core.RectVector;
 import org.bytedeco.javacpp.opencv_core.Rect;
 
 import static org.bytedeco.javacpp.opencv_core.Mat;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Random;
 
 import static org.bytedeco.javacpp.opencv_imgproc.CV_BGR2GRAY;
 import static org.bytedeco.javacpp.opencv_imgproc.cvtColor;
@@ -40,9 +45,6 @@ public class TrainFaces extends AppCompatActivity {
     private TextView textView;
     private opencv_objdetect.CascadeClassifier faceDetector;
     private int absoluteFaceSize = 0;
-
-
-
 
 
     @Override
@@ -90,7 +92,6 @@ public class TrainFaces extends AppCompatActivity {
             // Display number of faces detected.
             // Draw a rectangle around the first face detected.
             detectAndDisplay(bitmap, textView);
-
         }
     }
 
@@ -136,14 +137,51 @@ public class TrainFaces extends AppCompatActivity {
         int numFaces = (int) faces.size();
         facesValue.setText(Integer.toString(numFaces));
 
-        // Display the detected face.
-//        int x = faces.get(0).x();
-//        int y = faces.get(0).y();
-//        int w = faces.get(0).width();
-//        int h = faces.get(0).height();
-//
-//        rectangle(mat, new Point(x, y), new Point(x + w, y + h), opencv_core.Scalar.GREEN, 2, LINE_8, 0);
+        // -------------------------------------------------------------------
+        //                      STORE THE TRAINED PHOTOS
+        // -------------------------------------------------------------------
+        if ( numFaces > 0 ) {
+            // Multiple face detection.
+            for (int i = 0; i < numFaces; i++) {
 
+                // Display the detected face.
+                int x1 = faces.get(i).x();
+                int y1 = faces.get(i).y();
+                int w1 = faces.get(i).width();
+                int h1 = faces.get(i).height();
+
+
+
+                // Crop the detected face.
+                Rect rectCrop = new Rect(x1, y1, w1, h1);
+
+                // Convert the original image to dropped image.
+                Mat croppedImage = new Mat(mat, rectCrop);
+
+                // Important: Needed or the image will come out blurring.
+                resize(croppedImage, croppedImage, new opencv_core.Size(TrainHelper.IMG_SIZE,TrainHelper.IMG_SIZE));
+
+
+
+                // -------------------------------------------------------------------
+                //              CONVERT BACK TO BITMAP FOR DISPLAYING
+                // -------------------------------------------------------------------
+                // Convert processedMat back to a Frame
+                frame = converterToMat.convert(croppedImage);
+
+                // Copy the data to a Bitmap for display or something
+                Bitmap bm1 = converterToBitmap.convert(frame);
+
+                // Store image.
+                storeImage(bm1);
+            }
+        }
+
+
+
+        // -------------------------------------------------------------------
+        //                               DISPLAY
+        // -------------------------------------------------------------------
         if ( numFaces > 0 ) {
             // Multiple face detection.
             for (int i = 0; i < numFaces; i++) {
@@ -170,18 +208,29 @@ public class TrainFaces extends AppCompatActivity {
         } else {
             imageView.setImageBitmap(bitmap);
         }
+    }
 
 
+    void storeImage(Bitmap bitmap) {
 
+        String root = Environment.getExternalStorageDirectory().toString();
+        File myDir = new File(root + "/saved_images");
+        myDir.mkdirs();
+        Random generator = new Random();
+        int n = 10000;
+        n = generator.nextInt(n);
+        String fname = "Image-"+ n +".jpg";
+        File file = new File (myDir, fname);
+        if (file.exists ()) file.delete ();
+        try {
+            FileOutputStream out = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out);
+            out.flush();
+            out.close();
 
-        // Crop the detected face.
-        // Rect rectCrop = new Rect(x, y, w, h);
-
-        // Convert the original image to dropped image.
-        // Mat croppedImage = new Mat(mat, rectCrop);
-
-
-
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
     }
 }
