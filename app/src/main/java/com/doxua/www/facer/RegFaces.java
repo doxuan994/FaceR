@@ -49,7 +49,6 @@ public class RegFaces extends AppCompatActivity {
 
     // View variables.
     private ImageView imageView;
-    private TextView textView;
     private TextView tv;
 
     // Face Detection.
@@ -69,7 +68,6 @@ public class RegFaces extends AppCompatActivity {
 
         // Create the image view and text view.
         imageView = (ImageView) findViewById(R.id.imageView);
-        textView = (TextView) findViewById(R.id.faces_value);
         tv = (TextView) findViewById(R.id.predict_faces);
 
 
@@ -119,16 +117,15 @@ public class RegFaces extends AppCompatActivity {
             // Detect faces...
             // Display number of faces detected.
             // Draw a rectangle around the first face detected.
-            detectAndDisplay(bitmap, textView);
+            detectAndDisplay(bitmap);
         }
     }
 
     /**
      * Face Detection.
      * @param bitmap
-     * @param facesValue
      */
-    void detectAndDisplay(Bitmap bitmap, TextView facesValue) {
+    void detectAndDisplay(Bitmap bitmap) {
 
         // Create a new gray Mat.
         Mat greyMat = new Mat();
@@ -157,7 +154,6 @@ public class RegFaces extends AppCompatActivity {
 
         // Count number of faces and display in text view.
         int numFaces = (int) faces.size();
-        facesValue.setText(Integer.toString(numFaces));
 
         // -------------------------------------------------------------------
         //                               DISPLAY
