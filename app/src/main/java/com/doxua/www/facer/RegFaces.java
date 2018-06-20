@@ -46,6 +46,7 @@ public class RegFaces extends AppCompatActivity {
 
     private static final double ACCEPT_LEVEL = 4000.0D;
     private static final int PICK_IMAGE = 100;
+    private static final int IMG_SIZE = 160;
 
     // View variables.
     private ImageView imageView;
@@ -202,7 +203,7 @@ public class RegFaces extends AppCompatActivity {
     void recognize(Rect dadosFace, Mat grayMat, Mat rgbaMat, TextView tv) {
 
         Mat detectedFace = new Mat(grayMat, dadosFace);
-        resize(detectedFace, detectedFace, new Size(TrainHelper.IMG_SIZE, TrainHelper.IMG_SIZE));
+        resize(detectedFace, detectedFace, new Size(IMG_SIZE, IMG_SIZE));
 
         IntPointer label = new IntPointer(1);
         DoublePointer reliability = new DoublePointer(1);

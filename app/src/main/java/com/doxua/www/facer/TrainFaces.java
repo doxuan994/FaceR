@@ -132,9 +132,7 @@ public class TrainFaces extends AppCompatActivity {
             // Detect faces... Sometimes, hands, boobs, dogs, barbie dolls, etc.
             // Display number of detected faces.
             // Draw a green rectangle around the first detected face.
-            // detectAndDisplay(bitmap, textView);
-
-
+            detectAndDisplay(bitmap, textView);
 
             // Store images with the correct format.
             if (photoNumber <= PHOTOS_TRAIN_QTY) {
@@ -147,85 +145,6 @@ public class TrainFaces extends AppCompatActivity {
             }
         }
     }
-
-
-
-    /**
-     * Use the picture selecting from the gallery, then saves the captured image to a given storage.
-     * Saves an image to a specified file.
-     * Important!
-     * @param context
-     * @param personId
-     * @param photoNumber
-     * @param bitmap
-     * @throws Exception
-     */
-    void saveImages(Context context, int personId, int photoNumber, Bitmap bitmap) throws Exception {
-
-        // Create a new folder to save our captured images.
-        File folder = new File(context.getFilesDir(), TRAIN_FOLDER);
-
-        if (folder.exists() && !folder.isDirectory()) {
-            folder.delete();
-        }
-
-        if (!folder.exists()) {
-            folder.mkdirs();
-        }
-
-        // Keep track of saved images.
-        int qtyPhotos = PHOTOS_TRAIN_QTY;
-
-        // Create a new gray Mat.
-        Mat greyMat = new Mat();
-        // JavaCV frame converters.
-        AndroidFrameConverter converterToBitmap = new AndroidFrameConverter();
-        OpenCVFrameConverter.ToMat converterToMat = new OpenCVFrameConverter.ToMat();
-
-        // -------------------------------------------------------------------
-        //                  CONVERT TO MAT FOR PROCESSING
-        // -------------------------------------------------------------------
-        // Convert to Bitmap.
-        Frame frame = converterToBitmap.convert(bitmap);
-        // Convert to Mat.
-        Mat colorMat = converterToMat.convert(frame);
-
-        // Convert to Gray scale.
-        cvtColor(colorMat, greyMat, CV_BGR2GRAY);
-        // Vector of rectangles where each rectangle contains the detected object.
-        RectVector faces = new RectVector();
-
-        // Load the CascadeClassifier class to detect objects.
-        faceDetector = loadClassifierCascade(this, R.raw.frontalface);
-
-        // Detect the face.
-        faceDetector.detectMultiScale(greyMat, faces, 1.1, 1, 0, new Size(150,150), new Size(500,500));
-
-        // Count number of faces and display in text view.
-        int numFaces = (int) faces.size();
-
-
-        // Save all the detected faces.
-        for (int i = 0; i < numFaces; i++) {
-            Rect rectFace = faces.get(i);
-            rectangle(colorMat, rectFace, new Scalar(0,0,255, 0));
-            Mat capturedFace = new Mat(greyMat, rectFace);
-            resize(capturedFace, capturedFace, new Size(IMG_SIZE,IMG_SIZE));
-
-            // Save an image of limit of images not reach.
-            if (photoNumber <= qtyPhotos) {
-                File f = new File(folder, String.format(FILE_NAME_PATTERN, personId, photoNumber));
-                f.createNewFile();
-                imwrite(f.getAbsolutePath(), capturedFace);
-            }
-        }
-
-    }
-
-
-
-
-
 
     /**
      * Introducing JavaCV frame converters.
@@ -279,8 +198,6 @@ public class TrainFaces extends AppCompatActivity {
                 int y1 = faces.get(i).y();
                 int w1 = faces.get(i).width();
                 int h1 = faces.get(i).height();
-
-
 
                 // Crop the detected face.
                 Rect rectCrop = new Rect(x1, y1, w1, h1);
@@ -515,12 +432,12 @@ public class TrainFaces extends AppCompatActivity {
         MatVector photos = new MatVector(files.length);
         Mat labels = new Mat(files.length, 1, CV_32SC1);
         IntBuffer rotulosBuffer = labels.createBuffer();
-        
+
         int counter = 0;
         for (File image: files) {
             Mat photo = imread(image.getAbsolutePath(), CV_LOAD_IMAGE_GRAYSCALE);
             int classe = Integer.parseInt(image.getName().split("\\.")[1]);
-            resize(photo, photo, new Size(IMG_SIZE,IMG_SIZE));
+            resize(photo, photo, new Size(IMG_SIZE, IMG_SIZE));
             photos.put(counter, photo);
             rotulosBuffer.put(counter, classe);
             counter++;
