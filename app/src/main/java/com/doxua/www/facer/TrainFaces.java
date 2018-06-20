@@ -515,9 +515,7 @@ public class TrainFaces extends AppCompatActivity {
         MatVector photos = new MatVector(files.length);
         Mat labels = new Mat(files.length, 1, CV_32SC1);
         IntBuffer rotulosBuffer = labels.createBuffer();
-
-        // This block of codes is not related with the block of codes below them.
-        // TO-DO:
+        
         int counter = 0;
         for (File image: files) {
             Mat photo = imread(image.getAbsolutePath(), CV_LOAD_IMAGE_GRAYSCALE);
@@ -529,7 +527,6 @@ public class TrainFaces extends AppCompatActivity {
         }
 
         // Save our model as YAML file to the folder created on the top of the method.
-        // TO-DO: Happened to save an empty YAML file to the myTrainDir folder.
         if (photosFolder.length() > 0) {
             FaceRecognizer eigenfaces = EigenFaceRecognizer.create();
             eigenfaces.train(photos, labels);
