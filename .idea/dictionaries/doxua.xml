@@ -2,6 +2,8 @@
   <dictionary name="doxua">
     <words>
       <w>fname</w>
+      <w>nomes</w>
+      <w>yaml</w>
     </words>
   </dictionary>
 </component>
