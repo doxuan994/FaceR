@@ -48,7 +48,11 @@ public class RegFaces extends AppCompatActivity {
     private static final int PICK_IMAGE = 100;
     private static final int IMG_SIZE = 160;
 
-    // View variables.
+    // Helping variables.
+    private String[] nomes = {"", "A match is found!"};
+    private boolean trained;
+
+    // Views.
     private ImageView imageView;
     private TextView tv;
 
@@ -57,8 +61,6 @@ public class RegFaces extends AppCompatActivity {
     private int absoluteFaceSize = 0;
 
     // Face Recognition.
-    private String[] nomes = {"", "A match is found!"};
-    private boolean trained;
     private FaceRecognizer faceRecognizer = EigenFaceRecognizer.create();
 
     @Override
@@ -72,7 +74,7 @@ public class RegFaces extends AppCompatActivity {
         tv = (TextView) findViewById(R.id.predict_faces);
 
 
-        // Load the trained folder with JavaCV format.
+        // Find the correct root path where our trained face model is stored.
         String root = Environment.getExternalStorageDirectory().toString();
         String photosFolderPath = root + "/myTrainDir";
         File photosFolder = new File(photosFolderPath);
@@ -115,10 +117,7 @@ public class RegFaces extends AppCompatActivity {
                 e.printStackTrace();
             }
 
-            // Detect faces...
-            // Display number of faces detected.
-            // Draw a rectangle around the first face detected.
-            detectAndDisplay(bitmap);
+            detectDisplayAndRecognize(bitmap);
         }
     }
 
@@ -126,7 +125,7 @@ public class RegFaces extends AppCompatActivity {
      * Face Detection.
      * @param bitmap
      */
-    void detectAndDisplay(Bitmap bitmap) {
+    void detectDisplayAndRecognize(Bitmap bitmap) {
 
         // Create a new gray Mat.
         Mat greyMat = new Mat();
@@ -134,19 +133,26 @@ public class RegFaces extends AppCompatActivity {
         AndroidFrameConverter converterToBitmap = new AndroidFrameConverter();
         OpenCVFrameConverter.ToMat converterToMat = new OpenCVFrameConverter.ToMat();
 
+        // -------------------------------------------------------------------
+        //                    Convert to mat for processing
+        // -------------------------------------------------------------------
         // Convert to Bitmap.
         Frame frame = converterToBitmap.convert(bitmap);
         // Convert to Mat.
         Mat colorMat = converterToMat.convert(frame);
 
-        // Load the CascadeClassifier class to detect objects.
-        faceDetector = TrainFaces.loadClassifierCascade(RegFaces.this, R.raw.frontalface);
 
         // Convert to Gray scale.
         cvtColor(colorMat, greyMat, CV_BGR2GRAY);
         // Vector of rectangles where each rectangle contains the detected object.
         RectVector faces = new RectVector();
 
+
+        // -----------------------------------------------------------------------------------------
+        //                                  FACE DETECTION
+        // -----------------------------------------------------------------------------------------
+        // Load the CascadeClassifier class to detect objects.
+        faceDetector = TrainFaces.loadClassifierCascade(RegFaces.this, R.raw.frontalface);
         // Detect the face.
         faceDetector.detectMultiScale(greyMat, faces, 1.25f, 3, 1,
                 new Size(absoluteFaceSize, absoluteFaceSize),
@@ -156,9 +162,9 @@ public class RegFaces extends AppCompatActivity {
         // Count number of faces and display in text view.
         int numFaces = (int) faces.size();
 
-        // -------------------------------------------------------------------
-        //                               DISPLAY
-        // -------------------------------------------------------------------
+        // -----------------------------------------------------------------------------------------
+        //                                      DISPLAY
+        // -----------------------------------------------------------------------------------------
         if ( numFaces > 0 ) {
             // Multiple face detection.
             for (int i = 0; i < numFaces; i++) {
@@ -171,7 +177,7 @@ public class RegFaces extends AppCompatActivity {
                 rectangle(colorMat, new Point(x, y), new Point(x + w, y + h), Scalar.GREEN, 2, LINE_8, 0);
 
                 // -------------------------------------------------------------------
-                //              CONVERT BACK TO BITMAP FOR DISPLAYING
+                //              Convert back to bitmap for displaying
                 // -------------------------------------------------------------------
                 // Convert processed Mat back to a Frame
                 frame = converterToMat.convert(colorMat);
@@ -185,24 +191,24 @@ public class RegFaces extends AppCompatActivity {
             imageView.setImageBitmap(bitmap);
         }
 
-        // -------------------------------------------------------------------
-        //                          FACE RECOGNITION
-        // -------------------------------------------------------------------
+        // -----------------------------------------------------------------------------------------
+        //                                  FACE RECOGNITION
+        // -----------------------------------------------------------------------------------------
         if (trained) {
-            recognize(faces.get(0), greyMat, colorMat, tv);
+            recognize(faces.get(0), greyMat, tv);
         }
 
     }
 
     /**
      * Predict whether the choosing image is matching or not.
+     * Important.
      * @param dadosFace
-     * @param grayMat
-     * @param rgbaMat
+     * @param greyMat
      */
-    void recognize(Rect dadosFace, Mat grayMat, Mat rgbaMat, TextView tv) {
+    void recognize(Rect dadosFace, Mat greyMat, TextView tv) {
 
-        Mat detectedFace = new Mat(grayMat, dadosFace);
+        Mat detectedFace = new Mat(greyMat, dadosFace);
         resize(detectedFace, detectedFace, new Size(IMG_SIZE, IMG_SIZE));
 
         IntPointer label = new IntPointer(1);
@@ -224,4 +230,5 @@ public class RegFaces extends AppCompatActivity {
         }
 
     }
+
 }

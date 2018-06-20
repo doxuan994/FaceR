@@ -130,14 +130,19 @@ public class TrainFaces extends AppCompatActivity {
             }
 
             // Detect faces... Sometimes, hands, boobs, dogs, barbie dolls, etc.
-            // Display number of detected faces.
             // Draw a green rectangle around the first detected face.
-            detectAndDisplay(bitmap, textView);
+            // Store color detected faces.
+            // Display number of detected faces.
+            // detectStoreColorAndDisplay(bitmap, textView);
 
+
+            // -------------------------------------------------------------------------------------
+            //                                  STORE GRAYSCALE
+            // -------------------------------------------------------------------------------------
             // Store images with the correct format.
             if (photoNumber <= PHOTOS_TRAIN_QTY) {
                 try {
-                    storeFormat(bitmap, 1, photoNumber);
+                    storeImageGrayscale(bitmap, 1, photoNumber);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -152,7 +157,7 @@ public class TrainFaces extends AppCompatActivity {
      * @param bitmap
      * @param facesValue
      */
-    void detectAndDisplay(Bitmap bitmap, TextView facesValue) {
+    void detectStoreColorAndDisplay(Bitmap bitmap, TextView facesValue) {
 
         // Create a new gray Mat.
         Mat greyMat = new Mat();
@@ -161,7 +166,7 @@ public class TrainFaces extends AppCompatActivity {
         OpenCVFrameConverter.ToMat converterToMat = new OpenCVFrameConverter.ToMat();
 
         // -------------------------------------------------------------------
-        //                  CONVERT TO MAT FOR PROCESSING
+        //                  Convert to mat for processing
         // -------------------------------------------------------------------
         // Convert to Bitmap.
         Frame frame = converterToBitmap.convert(bitmap);
@@ -173,9 +178,12 @@ public class TrainFaces extends AppCompatActivity {
         // Vector of rectangles where each rectangle contains the detected object.
         RectVector faces = new RectVector();
 
+
+        // -----------------------------------------------------------------------------------------
+        //                                  FACE DETECTION
+        // -----------------------------------------------------------------------------------------
         // Load the CascadeClassifier class to detect objects.
         faceDetector = loadClassifierCascade(this, R.raw.frontalface);
-
         // Detect the face.
         faceDetector.detectMultiScale(greyMat, faces, 1.25f, 3, 1,
                 new opencv_core.Size(absoluteFaceSize, absoluteFaceSize),
@@ -186,9 +194,9 @@ public class TrainFaces extends AppCompatActivity {
         int numFaces = (int) faces.size();
         facesValue.setText(Integer.toString(numFaces));
 
-        // -------------------------------------------------------------------
-        //                      STORE THE TRAINED PHOTOS
-        // -------------------------------------------------------------------
+        // -----------------------------------------------------------------------------------------
+        //                                   STORE COLOR IMAGES
+        // -----------------------------------------------------------------------------------------
         if ( numFaces > 0 ) {
             // Multiple face detection.
             for (int i = 0; i < numFaces; i++) {
@@ -209,7 +217,7 @@ public class TrainFaces extends AppCompatActivity {
                 resize(croppedImage, croppedImage, new Size(IMG_SIZE, IMG_SIZE));
 
                 // -------------------------------------------------------------------
-                //              CONVERT BACK TO BITMAP FOR DISPLAYING
+                //              Convert back to bitmap for displaying
                 // -------------------------------------------------------------------
                 // Convert processed Mat back to a Frame
                 frame = converterToMat.convert(croppedImage);
@@ -218,14 +226,14 @@ public class TrainFaces extends AppCompatActivity {
 
                 // Store image.
                 String s = "/tom_cruise";
-                storeImages(bm1, s);
+                storeImageColor(bm1, s);
             }
 
         }
 
-        // -------------------------------------------------------------------
-        //                               DISPLAY
-        // -------------------------------------------------------------------
+        // -----------------------------------------------------------------------------------------
+        //                                         DISPLAY
+        // -----------------------------------------------------------------------------------------
         if ( numFaces > 0 ) {
             // Multiple face detection.
             for (int i = 0; i < numFaces; i++) {
@@ -238,7 +246,7 @@ public class TrainFaces extends AppCompatActivity {
                 rectangle(colorMat, new Point(x, y), new Point(x + w, y + h), opencv_core.Scalar.GREEN, 2, LINE_8, 0);
 
                 // -------------------------------------------------------------------
-                //              CONVERT BACK TO BITMAP FOR DISPLAYING
+                //              Convert back to bitmap for displaying
                 // -------------------------------------------------------------------
                 // Convert processed Mat back to a Frame
                 frame = converterToMat.convert(colorMat);
@@ -254,9 +262,16 @@ public class TrainFaces extends AppCompatActivity {
 
     }
 
-    // --------------------------------------------------------------------------------------------------
-    //                                          HELPER METHODS
-    // --------------------------------------------------------------------------------------------------
+
+
+
+    /***********************************************************************************************
+     *
+     *
+     *                                      HELPER METHODS
+     *
+     *
+     **********************************************************************************************/
 
     /**
      * Load the CascadeClassifier for Face Detection.
@@ -315,7 +330,7 @@ public class TrainFaces extends AppCompatActivity {
      * The folder of all the captured called "saved_images.
      * @param bitmap
      */
-    void storeImages(Bitmap bitmap, String personName) {
+    void storeImageColor(Bitmap bitmap, String personName) {
 
         // Find the string root of the phone path.
         String root = Environment.getExternalStorageDirectory().toString();
@@ -345,13 +360,16 @@ public class TrainFaces extends AppCompatActivity {
         }
     }
 
+
+
     /**
      * Save the grayscale format.
+     * IMPORTANT.
      * @param bitmap The image.
      * @param personId
      * @param photoNumber
      */
-    void storeFormat(Bitmap bitmap, int personId, int photoNumber) throws Exception {
+    void storeImageGrayscale(Bitmap bitmap, int personId, int photoNumber) throws Exception {
 
         // Find the string root of the phone path.
         String root = Environment.getExternalStorageDirectory().toString();
@@ -407,13 +425,16 @@ public class TrainFaces extends AppCompatActivity {
         }
     }
 
+
+
     /**
      * Train our model.
-     * Important!
+     * IMPORTANT.
      * @return
      * @throws Exception
      */
     boolean trainExternalStorage() throws Exception {
+
         // Find the string root of the phone path.
         String root = Environment.getExternalStorageDirectory().toString();
         String photosFolderPath = root + "/myTrainDir";
@@ -452,6 +473,7 @@ public class TrainFaces extends AppCompatActivity {
             eigenfaces.save(f.getAbsolutePath());
         }
         return true;
+
     }
 
 }
