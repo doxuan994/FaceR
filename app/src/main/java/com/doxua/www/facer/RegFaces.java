@@ -49,10 +49,6 @@ public class RegFaces extends AppCompatActivity {
     private static final int PICK_IMAGE = 100;
     private static final int IMG_SIZE = 160;
 
-    // Helping variables.
-    private String[] nomes = {"", "A match is found!"};
-    private boolean trained;
-
     // Views.
     private ImageView imageView;
     private TextView tv;
@@ -184,7 +180,6 @@ public class RegFaces extends AppCompatActivity {
         // -----------------------------------------------------------------------------------------
         recognize(faces.get(0), greyMat, tv);
 
-
     }
 
     /**
@@ -248,10 +243,10 @@ public class RegFaces extends AppCompatActivity {
         // Display the prediction.
         if (prediction <= -1 || acceptanceLevel >= ACCEPT_LEVEL) {
             // Display on text view, not matching or unknown person.
-            tv.setText("Unknown");
+            tv.setText("Unknown ");
         } else {
             // Display the information for the matching image.
-            tv.setText(nomes[prediction] + " " + "Hi, " + personName +  " " + acceptanceLevel + " " + prediction);
+            tv.setText("A match is found " + "Hi, " + personName +  " " + acceptanceLevel);
         }
 
     }
