@@ -15,6 +15,7 @@ import android.widget.TextView;
 import java.io.File;
 import java.io.IOException;
 
+import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.javacpp.DoublePointer;
 import org.bytedeco.javacpp.IntPointer;
 import org.bytedeco.javacpp.opencv_core.Size;
@@ -44,7 +45,7 @@ import static org.bytedeco.javacpp.opencv_face.EigenFaceRecognizer;
  */
 public class RegFaces extends AppCompatActivity {
 
-    private static final double ACCEPT_LEVEL = 4000.0D;
+    private static final int ACCEPT_LEVEL = 1000;
     private static final int PICK_IMAGE = 100;
     private static final int IMG_SIZE = 160;
 
@@ -68,23 +69,9 @@ public class RegFaces extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_regfaces);
 
-
         // Create the image view and text view.
         imageView = (ImageView) findViewById(R.id.imageView);
         tv = (TextView) findViewById(R.id.predict_faces);
-
-
-        // Find the correct root path where our trained face model is stored.
-        String root = Environment.getExternalStorageDirectory().toString();
-        String photosFolderPath = root + "/myTrainDir";
-        File photosFolder = new File(photosFolderPath);
-        File f = new File(photosFolder, TrainFaces.EIGEN_FACES_CLASSIFIER);
-
-
-        // Loads a persisted model and state from a given XML or YAML file .
-        faceRecognizer.read(f.getAbsolutePath());
-        trained = true;
-
 
         // Pick an image and recognize.
         Button pickImageButton = (Button) findViewById(R.id.btnGallery);
@@ -116,13 +103,14 @@ public class RegFaces extends AppCompatActivity {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
             detectDisplayAndRecognize(bitmap);
         }
     }
 
     /**
      * Face Detection.
+     * Face Recognition.
+     * Display the detection result and recognition result.
      * @param bitmap
      */
     void detectDisplayAndRecognize(Bitmap bitmap) {
@@ -194,19 +182,30 @@ public class RegFaces extends AppCompatActivity {
         // -----------------------------------------------------------------------------------------
         //                                  FACE RECOGNITION
         // -----------------------------------------------------------------------------------------
-        if (trained) {
-            recognize(faces.get(0), greyMat, tv);
-        }
+        recognize(faces.get(0), greyMat, tv);
+
 
     }
 
     /**
      * Predict whether the choosing image is matching or not.
-     * Important.
+     * IMPORTANT.
      * @param dadosFace
      * @param greyMat
      */
     void recognize(Rect dadosFace, Mat greyMat, TextView tv) {
+
+        // Find the root path.
+        String root = Environment.getExternalStorageDirectory().toString();
+
+        // Find the correct root path where our trained face model is stored.
+        String personName = "Tom Cruise";
+        String photosFolderPath = root + "/myTrainDir/tom_cruise";
+        File photosFolder = new File(photosFolderPath);
+        File f = new File(photosFolder, TrainFaces.EIGEN_FACES_CLASSIFIER);
+
+        // Loads a persisted model and state from a given XML or YAML file.
+        faceRecognizer.read(f.getAbsolutePath());
 
         Mat detectedFace = new Mat(greyMat, dadosFace);
         resize(detectedFace, detectedFace, new Size(IMG_SIZE, IMG_SIZE));
@@ -217,16 +216,42 @@ public class RegFaces extends AppCompatActivity {
 
         // Display on the text view what we found.
         int prediction = label.get(0);
-        double acceptanceLevel = reliability.get(0);
-        String name;
-        if (prediction == -1 || acceptanceLevel >= ACCEPT_LEVEL) {
+        int acceptanceLevel = (int) reliability.get(0);
+
+        // If a face is not found but we have its model.
+        // Read the next model to find the matching.
+        if (prediction <= -1 || acceptanceLevel >= ACCEPT_LEVEL) {
+
+            // Find the correct root path where our trained face model is stored.
+            personName = "Katie Holmes";
+            photosFolderPath = root + "/myTrainDir/katie_holmes";
+            photosFolder = new File(photosFolderPath);
+            f = new File(photosFolder, TrainFaces.EIGEN_FACES_CLASSIFIER);
+
+            // Loads a persisted model and state from a given XML or YAML file.
+            faceRecognizer.read(f.getAbsolutePath());
+
+            detectedFace = new Mat(greyMat, dadosFace);
+            resize(detectedFace, detectedFace, new Size(IMG_SIZE, IMG_SIZE));
+
+            label = new IntPointer(1);
+            reliability = new DoublePointer(1);
+            faceRecognizer.predict(detectedFace, label, reliability);
+
+            // Display on the text view what we found.
+            prediction = label.get(0);
+            acceptanceLevel = (int) reliability.get(0);
+
+
+        }
+
+        // Display the prediction.
+        if (prediction <= -1 || acceptanceLevel >= ACCEPT_LEVEL) {
             // Display on text view, not matching or unknown person.
             tv.setText("Unknown");
         } else {
-            name = nomes[prediction] + " - " + acceptanceLevel;
-            // Cut the name of the photo out of the image name.
-            // Add the name of the photo to the text view also as person's name.
-            tv.setText(name);
+            // Display the information for the matching image.
+            tv.setText(nomes[prediction] + " " + "Hi, " + personName +  " " + acceptanceLevel + " " + prediction);
         }
 
     }

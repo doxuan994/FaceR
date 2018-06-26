@@ -55,20 +55,17 @@ import static org.bytedeco.javacpp.opencv_face.EigenFaceRecognizer;
 public class TrainFaces extends AppCompatActivity {
 
     public static final String TAG = "TrainFaces";
-    public static final String TRAIN_FOLDER = "train_folder";
-    public static final int IMG_SIZE = 160;
     public static final String EIGEN_FACES_CLASSIFIER = "eigenFacesClassifier.yml";
-    public static final int PHOTOS_TRAIN_QTY = 10;
     public static final String FILE_NAME_PATTERN = "person.%d.%d.jpg";
+    public static final int PHOTOS_TRAIN_QTY = 10;
+    public static final int IMG_SIZE = 160;
+    public static final int PICK_IMAGE = 100;
 
-    // Select images from gallery variables.
-    private static final int PICK_IMAGE = 100;
-
-    // View variables.
+    // Views.
     private ImageView imageView;
     private TextView textView;
 
-    // Load the CascadeClassifier class to detect objects.
+    // Face Detection.
     private CascadeClassifier faceDetector;
     private int absoluteFaceSize = 0;
 
@@ -129,11 +126,11 @@ public class TrainFaces extends AppCompatActivity {
                 e.printStackTrace();
             }
 
-            // Detect faces... Sometimes, hands, boobs, dogs, barbie dolls, etc.
+            // Detect faces.
             // Draw a green rectangle around the first detected face.
             // Store color detected faces.
             // Display number of detected faces.
-            // detectStoreColorAndDisplay(bitmap, textView);
+            detectStoreColorAndDisplay(bitmap, textView);
 
 
             // -------------------------------------------------------------------------------------
@@ -152,7 +149,11 @@ public class TrainFaces extends AppCompatActivity {
     }
 
     /**
-     * Introducing JavaCV frame converters.
+     * Detect faces.
+     * Draw a green rectangle around the first detected face.
+     * Store color detected faces.
+     * Display number of detected faces.
+     * Notice: Introducing JavaCV frame converters.
      * http://bytedeco.org/news/2015/04/04/javacv-frame-converters/
      * @param bitmap
      * @param facesValue
@@ -222,11 +223,11 @@ public class TrainFaces extends AppCompatActivity {
                 // Convert processed Mat back to a Frame
                 frame = converterToMat.convert(croppedImage);
                 // Copy the data to a Bitmap for display or something
-                Bitmap bm1 = converterToBitmap.convert(frame);
+                Bitmap processedBitmap = converterToBitmap.convert(frame);
 
                 // Store image.
-                String s = "/tom_cruise";
-                storeImageColor(bm1, s);
+                String s = "/sample";
+                storeImageColor(processedBitmap, s);
             }
 
         }
@@ -320,7 +321,7 @@ public class TrainFaces extends AppCompatActivity {
         } else {
             Log.i(TAG, "Loaded cascade classifier from " + cascadeFile.getAbsolutePath());
         }
-        // Delete the temporary directory
+        // Delete the temporary directory.
         cascadeFile.delete();
         return detector;
     }
@@ -468,6 +469,7 @@ public class TrainFaces extends AppCompatActivity {
         if (photosFolder.length() > 0) {
             FaceRecognizer eigenfaces = EigenFaceRecognizer.create();
             eigenfaces.train(photos, labels);
+            // File f = new File(photosFolder + "/tom_cruise", EIGEN_FACES_CLASSIFIER);
             File f = new File(photosFolder, EIGEN_FACES_CLASSIFIER);
             f.createNewFile();
             eigenfaces.save(f.getAbsolutePath());
